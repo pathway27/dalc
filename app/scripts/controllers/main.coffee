@@ -26,29 +26,63 @@ angular.module('dalcApp')
     $scope.tyres = 4
     $scope.tyresTotal = ->
       $scope.tyres * 1000
-    $scope.weight = 0
-    
-    $scope.sea = ->
-      # return formula(x)
-    $scope.surface = ->
-      # return formula(x)
-    $scope.ems = ->
-      # return formula(x)
 
-    $scope.quantity = 0
+    $scope.weight = 300
+    $scope.quantity = 1
+
+    $scope.shippingTypes = [
+      "Sea",
+      "Surface",
+      "EMS"
+    ]
+
+    $scope.shippingType = $scope.shippingTypes[0]
+    $scope.shipping = ->
+      weight = $scope.weight
+      type = $scope.shippingType
+      cost = switch
+        when type is "Sea" then $scope.sea weight
+        when type is "Surface" then $scope.surface weight
+        when type is "EMS" then $scope.ems weight
+      cost * $scope.quantity
+
+    $scope.sea = (weight) ->
+      [init, increment, finalIncrement] = [1800, 550, 350]
+      val = switch
+        when weight <= 10000 then init + (increment * (Math.ceil(weight/1000)-1))
+        when weight >  10000 then init + (increment * 9) + (finalIncrement * (Math.ceil(weight/1000)-10))
+
+    $scope.surface = (weight) ->
+      [init, increment, finalIncrement] = [2700, 1050, 700]
+      val = switch
+        when weight <= 5000 then init + (1150 * (Math.ceil(weight/1000)-1))
+        when weight <= 10000 then 7300 + (increment * (Math.ceil(weight/1000)-5))
+        when weight <= 12000 then init + (increment * 9) + (finalIncrement * (Math.floor(weight/1000)-10))
+        when weight <= 14000 then 14350
+        when weight <= 15000 then 16050
+        when weight >  15000 then 16050 + (finalIncrement * (Math.ceil(weight/1000)-15))
+
+    $scope.ems = (weight) ->
+      [init, increment, finalIncrement] = [2700, 1050, 700]
+      ems = switch
+        when weight <= 300  then 1200
+        when weight <= 1000 then 1500 + (180 * (Math.ceil(weight/100)-5))
+        when weight <= 2000 then 2400 + (400 * (Math.ceil(weight/250)-4))
+        when weight <= 6000 then 4000 + (700 * (Math.ceil(weight/500)-4))
+        when weight >  6000 then 10700 + (1100 * (Math.ceil(weight/1000)-7))
     
     $scope.handling = 0
-    $scope.shippingSea = 35000.00
-    $scope.shippingEms = 0
+    # $scope.shippingSea = 35000.00
+    # $scope.shippingEms = 0
     
     $scope.tot = ->
       ($scope.itemCost + $scope.shippingCost +
        $scope.bankFee() + $scope.brokerFee() +
-       $scope.shippingSea + $scope.shippingEms +
+       $scope.shipping() +
        $scope.tyresTotal() + $scope.handling)
     $scope.paypal = ->
       $scope.tot() * 1.04
-    $scope.exchangeRate = 92
+    $scope.exchangeRate = 95.5
     $scope.exchangeRateSub = ->
       $scope.exchangeRate - 3.3
       
