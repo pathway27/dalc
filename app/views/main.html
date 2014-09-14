@@ -159,7 +159,7 @@
           <th>Shipping</th>
           <td>{{shippingType}}: {{shipping() | currency:"¥"}}</td>
         </tr>
-        <tr>
+        <tr ng-show="handling > 0">
           <th>Container Handling</th>
           <td>{{handling | currency:"¥"}}</td>
         </tr>
