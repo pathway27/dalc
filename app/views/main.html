@@ -1,5 +1,5 @@
 <div class="row">
-<div class="col-sm-8 well">
+<div class="col-sm-9 well">
   
   <form class="form-horizontal" role="form">
     
@@ -62,6 +62,10 @@
         <select class="form-control" ng-model="shippingType" ng-options="type for type in shippingTypes">
         </select>
       </div>
+      <div class="col-sm-3">
+        <select class="form-control" ng-model="country" ng-options="country for country in countries">
+        </select>
+      </div>
       <label for="inputPassword3" 
              class="col-sm-3 control-label">
         {{shipping() | currency:"¥"}}
@@ -74,9 +78,16 @@
         <input type="number" class="form-control" id="total-cost" placeholder="Handling" ng-model="handling">
       </div>
     </div>
+
+   <div class="form-group">
+      <label for="inputPassword3" class="col-sm-2 control-label">Total wo/shipping</label>
+      <div class="col-sm-10">
+        {{totWithoutShipping() | currency:"¥"}}
+      </div>
+    </div>
         
    <div class="form-group">
-      <label for="inputPassword3" class="col-sm-2 control-label">Tot</label>
+      <label for="inputPassword3" class="col-sm-2 control-label">Total</label>
       <div class="col-sm-10">
         {{tot() | currency:"¥"}}
       </div>
@@ -88,11 +99,24 @@
         {{paypal() | currency:"¥"}}
       </label>
     </div>
-    
+
+   <div class="form-group">
+      <label for="inputPassword3" class="col-sm-2 control-label">Currency</label>
+      <div class="col-sm-3">
+        <select class="form-control" ng-model="myCurrency" ng-options="currency for currency in currCountries"
+                ng-change="exchangeRateDefaults()">
+        </select>
+
+      </div>
+    </div>
+
     <div class="form-group">
       <label for="inputPassword3" class="col-sm-2 control-label">Exchange Rate</label>
       <div class="col-sm-4">
-        <input type="number" class="form-control" id="total-cost" placeholder="sea" ng-model="exchangeRate">
+        <label class="col-sm-4">
+          {{exchangeRate}}
+        </label>
+        <!-- <input type="number" class="form-control" id="total-cost" placeholder="sea" ng-model="exchangeRate"> -->
         <button class="btn btn-default" ng-click="fetchYenAUD($event)">Fetch Current <i class="fa fa-refresh" ng-class="fetching? 'fa-spin': 'hide'"></i></button> 
       </div>
       
@@ -104,10 +128,10 @@
 
     <div class="form-group">
       <p class="bg-success">
-        Est Price in AUD: <span class="pull-right"><strong>{{priceAUD() | currency}}</strong></span>
+        Est Price in {{myCurrency}}: <span class="pull-right"><strong>{{priceAUD() | currency: currencies[myCurrency]}}</strong></span>
       </p>
-      <p class="bg-info">Est Paypal Price in AUD:
-        <span class="pull-right"><strong>  {{paypalPriceAUD() | currency}}
+      <p class="bg-info">Est Paypal Price in {{myCurrency}}:
+        <span class="pull-right"><strong>  {{paypalPriceAUD() | currency: currencies[myCurrency]}}
         </strong></span>
       </p>
     </div>
@@ -176,12 +200,12 @@
           <td>{{exchangeRate}}: {{exchangeRateSub()}}</td>
         </tr>
         <tr>
-          <th>Price AUD</th>
-          <td>{{priceAUD() | currency:"$"}}</td>
+          <th>Price {{myCurrency}}</th>
+          <td>{{priceAUD() | currency: currencies[myCurrency]}}</td>
         </tr>
         <tr>
-          <th>Payal Price AUD</th>
-          <td>{{paypalPriceAUD() | currency:"$"}}</td>
+          <th>Payal Price {{myCurrency}}</th>
+          <td>{{paypalPriceAUD() | currency: currencies[myCurrency]}}</td>
         </tr>
 
       </tbody>

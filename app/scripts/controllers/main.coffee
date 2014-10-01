@@ -35,15 +35,26 @@ angular.module('dalcApp')
       "Surface",
       "EMS"
     ]
+    $scope.countries = ["AU/NZ", "Europe"]
 
+    $scope.country = $scope.countries[0]
     $scope.shippingType = $scope.shippingTypes[0]
+
+    # $scope.currencies = ["AUD", "USD", "EUR"]
+    $scope.currencies = 
+      AUD: "$"
+      USD: "$"
+      EUR: "€"
+    $scope.currCountries = Object.keys $scope.currencies
+    $scope.myCurrency = 'AUD'
+
     $scope.shipping = ->
       weight = $scope.weight
       type = $scope.shippingType
       cost = switch
         when type is "Sea" then $scope.sea weight
         when type is "Surface" then $scope.surface weight
-        when type is "EMS" then $scope.ems weight
+        when type is "EMS" then $scope.ems weight, $scope.country
       cost * $scope.quantity
 
     $scope.sea = (weight) ->
@@ -62,19 +73,26 @@ angular.module('dalcApp')
         when weight <= 15000 then 16050
         when weight >  15000 then 16050 + (finalIncrement * (Math.ceil(weight/1000)-15))
 
-    $scope.ems = (weight) ->
-      [init, increment, finalIncrement] = [2700, 1050, 700]
+    $scope.ems = (weight, country) ->
+      [init, incrOne, incrTwo, incrThree, finalIncrement] = switch
+        when country is "Australia" then  [1200, 180, 400, 700, 1100]
+        when country is "Europe"    then  [1500, 200, 450, 800, 1300]
       ems = switch
-        when weight <= 300  then 1200
-        when weight <= 1000 then 1500 + (180 * (Math.ceil(weight/100)-5))
-        when weight <= 2000 then 2400 + (400 * (Math.ceil(weight/250)-4))
-        when weight <= 6000 then 4000 + (700 * (Math.ceil(weight/500)-4))
-        when weight >  6000 then 10700 + (1100 * (Math.ceil(weight/1000)-7))
+        when weight <= 300  then init
+        when weight <= 500  then init + 300
+        when weight <= 1000 then init + 300 + (incrOne * (Math.ceil(weight/100)-5))
+        when weight <= 2000 then init + 300 + (incrOne * 5)  + (incrTwo * (Math.ceil(weight/250)-4))
+        when weight <= 6000 then init + 300 + (incrOne * 5)  + (incrTwo * 4) + (incrThree * (Math.ceil(weight/500)-4))
+        when weight >  6000 then init + 300 + (incrOne * 5)  + (incrTwo * 4) + (incrThree * 8) + (finalIncrement * (Math.ceil(weight/1000)-6))
     
     $scope.handling = 0
     # $scope.shippingSea = 35000.00
     # $scope.shippingEms = 0
-    
+
+    $scope.totWithoutShipping = ->
+      ($scope.itemCost + $scope.shippingCost +
+       $scope.bankFee() + $scope.brokerFee() +
+       $scope.tyresTotal() + $scope.handling)    
     $scope.tot = ->
       ($scope.itemCost + $scope.shippingCost +
        $scope.bankFee() + $scope.brokerFee() +
@@ -82,7 +100,14 @@ angular.module('dalcApp')
        $scope.tyresTotal() + $scope.handling)
     $scope.paypal = ->
       $scope.tot() * 1.04
-    $scope.exchangeRate = 95.5
+
+    $scope.exchangeRateDefaults = ->
+      $scope.exchangeRate = switch
+        when $scope.myCurrency is 'AUD' then 95.5
+        when $scope.myCurrency is 'USD' then 109.87
+        when $scope.myCurrency is 'EUR' then 138.6
+
+    $scope.exchangeRate = $scope.exchangeRateDefaults()
     $scope.exchangeRateSub = ->
       $scope.exchangeRate - 3.3
       
@@ -95,8 +120,8 @@ angular.module('dalcApp')
     $scope.fetchYenAUD = ($event) ->
       $event.preventDefault()
       $scope.fetching = true
-      url = 'https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22AUDJPY%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback='
-      
+      currency = $scope.myCurrency
+      url = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22" + currency + "JPY%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback="
       $http.get(url).then (response) ->
         $scope.exchangeRate =  Math.round(response.data.query.results.rate["Rate"] * 100) / 100
         $scope.fetching = false
